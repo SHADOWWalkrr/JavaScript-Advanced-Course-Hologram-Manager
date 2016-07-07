@@ -5,6 +5,7 @@
 var app = window.app || {};
 
 (function (global) {
+
     var model = app.model = app.model || {};
 
     /**
@@ -86,7 +87,7 @@ var app = window.app || {};
     };
 
     /**
-     * Delete al saved presets
+     * Delete all saved presets
      * @return {Void}
      */
     model.removeAllPresets = function() {
@@ -94,24 +95,48 @@ var app = window.app || {};
         model[model.mode].removeAllPresets();
     };
 
-    // TO DO: Update presets
+    /**
+     * Updates specific preset
+     * @param {String} key
+     * @param {Object} obj
+     * @return {Void}
+     */
+    model.updatePreset = function(key,obj) {
+
+        model[model.mode].updatePreset(key,obj);
+    };
 
     /**
      * Authenticate user with email and password
-     * @param email
-     * @param password
+     * @param {Object} data
+     *   @param {String} email
+     *   @param {String} password
      */
-    model.authenticate = function authenticateUser (email, password) {
+    model.authenticate = function(data) {
 
         /**
          * Current support is only online authentication
          */
         model.online.authenticate({
-            email: username,
-            password: password
+            email: data.email,
+            password: data.password
         });
     };
 
-    // TO DO: Authenticate user with OAUTH
+    model.oAuthenticate = function(){
+
+        model.online.oAuthenticate();
+    };
+
+    model.registerUser = function(data) {
+
+        /**
+         * Current support is only online authentication
+         */
+        model.online.registerUser({
+            email: data.email,
+            password: data.password
+        });
+    };
 
 })(window);

@@ -1,23 +1,162 @@
 @charset "utf-8";
+
 .view-wrapper {
-  position: absolute;
-  width: calc(~"100% - 300px");
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  right: 0;
+    position: absolute;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    top: 0;
+    background: transparent;
+}
+.login-form, .presets-container, .edit-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    width: 450px;
+    padding: 40px 60px 0;
+    background-color: #000;
 }
 
-.centered {
-  flex: none;
+input:not([type=file]) {
+    height: 47px;
+    width: 100%;
+    padding: 0 20px;
+    text-transform: lowercase;
+    font-size: 25px;
+    line-height: 47px;
+    color: @mainFontColor;
+    border: 1px solid @mainFontColor;
+    background-color: #000;
+    text-align: center;
+
+    &::-webkit-input-placeholder {
+        color: @mainFontColor;
+    }
+
+    &:-moz-placeholder { /* Firefox 18- */
+        color: @mainFontColor;
+    }
+
+    &::-moz-placeholder {  /* Firefox 19+ */
+        color: @mainFontColor;
+    }
+
+    &:-ms-input-placeholder {
+        color: @mainFontColor;
+    }
+}
+.nav-title {
+    text-transform: uppercase;
+    color: @mainFontColor;
+    font-size: 35px;
+    padding-bottom: 20px;
+    text-align: center;
+}
+.login-btn, .preset-name {
+    height: 70px;
+    width: 100%;
+    text-transform: uppercase;
+    font-size: 25px;
+    line-height: 70px;
+    color: @mainFontColor;
+    border: 1px solid @mainFontColor;
+    background-color: #000;
+    text-align: center;
+    font-weight: bold
+}
+.preset-name {
+    position: relative;
+    padding: 0 30px;
+    text-align: left;
+
+    .preset-delete {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 30px;
+        height: 30px;
+
+        &:before, &:after {
+            content: '';
+            width: 5px;
+            height: 30px;
+            background-color: @mainFontColor;
+            position: absolute;
+            right: 13px;
+        }
+
+        &:before {
+            transform: rotate(45deg);
+        }
+        &:after {
+            transform: rotate(-45deg);
+        }
+    }
+
+    &:active {
+        background-color: @mainFontColor;
+        color: #000;
+
+        .preset-delete {
+
+            &:before, &:after {
+                content: '';
+                background-color: #000;
+            }
+        }
+    }
+}
+.preset {
+    margin-bottom: 10px;
 }
 
-.view-style {
-  background-color: #000;
+.edit-container {
+    width: 100%;
 }
 
-.form-group {
-  display: block;
-  padding-bottom: 1em;
+.action-name {
+    color: @mainFontColor;
+    padding-bottom: 0.5em;
+    text-align: center;
+    font-size:  40px;
+    font-weight:  bold;
 }
+
+.action-row {
+    padding-bottom: 3em;
+}
+
+.flex-parent {
+    display: flex;
+    flex-direction: row;
+    &.sp-bt {
+        justify-content: space-between;
+    }
+    &.sp-ar {
+        justify-content: space-around;
+    }
+    &.cn {
+        justify-content: center;
+    }
+}
+
+.flex-child {
+    flex-grow: 1;
+  &.double {
+    flex-grow: 2;
+  }
+}
+
+.divider-text {
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+}
+.save-changes {
+  input {
+    width: 50%;
+  }
+}
+

@@ -10,7 +10,17 @@ var app = window.app || {};
 
     var model = app.model = app.model || {};
 
-    app.DB = new Firebase("https://radiant-fire-7275.firebaseio.com");
+    app.DB = new Firebase("https://hologram-manager.firebaseio.com");
+
+    var oAuthPermissions = {
+
+        facebook : 'email',
+
+        google : 'email',
+
+        github : 'user:email'
+
+    }
 
     // Create a callback to handle the result of the authentication
     function authHandler(error, authData) {
@@ -35,9 +45,9 @@ var app = window.app || {};
      */
     function watchData() {
 
-        app.DB.child('presets').on('value', function (snapshot){
-            model.online.getAllPresets(snapshot.val());
-            app.DB.child('presets').off('value');
+        app.DB.child("users/"+app.model.data.user.uid+"/presets").on('value', function (snapshot){
+            model.online.getPresetsByLogin(snapshot.val());
+            app.DB.child("users/"+app.model.data.user.uid+"/presets").off('value');
         });
     }
 
@@ -45,56 +55,27 @@ var app = window.app || {};
     // TO DO: Move authentication to login screen
     // app.DB.authAnonymously(authHandler);
 
-
     /**
-     * Facebook Authentication
-     * FB API : https://developers.facebook.com/apps/608905429283761/dashboard/
-     * Guide: https://www.firebase.com/docs/web/guide/login/facebook.html
+     * Social Authentication
+     * @param {String} oAuthString - facebook , google , github
      */
-    function fbAuthenticate(){
-        app.DB.authWithOAuthPopup("facebook", function(error, authData) {
+    function oAuthenticate(){
+
+        var oAuthString = this.dataset.method;
+
+        app.DB.authWithOAuthPopup(oAuthString, function(error, authData) {
           if (error) {
             console.log("Login Failed!", error);
           } else {
-            console.log("Authenticated successfully with facebook:", authData);
+            console.log("Authenticated successfully with:", authData);
           }
+        },
+        {
+          // remember: "sessionOnly",
+          scope: oAuthPermissions[oAuthString]
         });
+
     }
-
-    /**
-     * Github Authentication
-     * Github Api : https://github.com/settings/applications/335149
-     * Guide : https://www.firebase.com/docs/web/guide/login/github.html
-     *         https://developer.github.com/v3/oauth/
-     */
-    function ghAuthenticate(){
-        app.DB.authWithOAuthPopup("github", function(error, authData) {
-          if (error) {
-            console.log("Login Failed!", error);
-          } else {
-            console.log("Authenticated successfully with github:", authData);
-          }
-        });
-    }
-
-    /**
-     * Google Authentication
-     * Google Api : https://console.developers.google.com/apis/credentials?project=codicamphologram-1279&authuser=2
-     * Guide : https://www.firebase.com/docs/web/guide/login/google.html
-     */
-    function ggAuthenticate(){
-        app.DB.authWithOAuthPopup("google", function(error, authData) {
-          if (error) {
-            console.log("Login Failed!", error);
-          } else {
-            console.log("Authenticated successfully with google:", authData);
-          }
-        });
-    }
-
-
-    // TO DO: Authenticate users with email/password combination
-    // TO DO: Authenticate users with via popular OAuth providers
 
     /**
      * Holds interactions with firebase
@@ -108,34 +89,51 @@ var app = window.app || {};
          * data.password
          * @return {Void}
          */
-        authentiate: function authenticateWithEmailAndPassword (data) {
+        authenticate: function authenticateWithEmailAndPassword (data) {
 
-            DB.authWithPassword({
+            app.DB.authWithPassword({
                email: data.email,
                password: data.password
             }, authHandler);
-        }
-    };
+        },
 
-    // Authenticate users with a custom authentication token
-    //DB.authWithCustomToken("<token>", authHandler);
+        /**
+         * @param {Object} data
+         * data.email
+         * data.password
+         * @return {Void}
+         */
+        registerUser: function (data) {
 
-    // Or with an email/password combination
-    //DB.authWithPassword({
-    //    email    : 'bobtony@firebase.com',
-    //    password : 'correcthorsebatterystaple'
-    //}, authHandler);
-    // Or via popular OAuth providers ("facebook", "github", "google", or "twitter")
-    //DB.authWithOAuthPopup("<provider>", authHandler);
-    //DB.authWithOAuthRedirect("<provider>", authHandler);
+            app.DB.createUser({
+               email: data.email,
+               password: data.password
+            }, function(error, userData) {
+              if (error) {
+                switch (error.code) {
+                  case "EMAIL_TAKEN":
+                    console.log("The new user account cannot be created because the email is already in use.");
+                    break;
+                  case "INVALID_EMAIL":
+                    console.log("The specified email is not a valid email.");
+                    break;
+                  default:
+                    console.log("Error creating user:", error);
+                }
+              } else {
+                console.log("Successfully created user account :", userData);
+              }
+            });
+        },
 
-    model.online = {
+        oAuthenticate : oAuthenticate,
+
 
         /**
          * Sets presets list in model.data
          * @param {Object} presetsList
          */
-        getAllPresets: function (presetsList) {
+        getPresetsByLogin: function (presetsList) {
             //Clear previous data
             model.data.presets = [];
 
@@ -145,13 +143,20 @@ var app = window.app || {};
             });
         },
 
+        getAllPresets: function() {
+
+            app.DB.child("users/"+app.model.data.user.uid+"/presets").on('value', function (snapshot){
+                console.log(snapshot.val());
+            });
+        },
+
         /**
          * Adds preset in Firebase
          * @param {Object} obj - added Preset
          */
         addPreset: function (obj) {
             // DONE : Add name to the default object for presets
-            var presets = app.DB.child("presets").push(obj);
+            app.DB.child("users/"+app.model.data.user.uid+"/presets").push(obj);
         },
 
         /**
@@ -171,7 +176,7 @@ var app = window.app || {};
          */
         removeSpecificPreset: function (id) {
 
-            app.DB.child('presets').child(id).remove();
+            app.DB.child("users/"+app.model.data.user.uid+"/presets").child(id).remove();
         },
 
         /**
@@ -180,8 +185,16 @@ var app = window.app || {};
          */
         removeAllPresets: function() {
 
-            app.DB.child('presets').remove();
-        }
+            app.DB.child("users/"+app.model.data.user.uid+"/presets").remove();
+        },
+
+        updatePreset: function(id,obj) {
+            app.DB.child("users/"+app.model.data.user.uid+"/presets").child(id).update(obj);
+        },
+
+        // updateMultiplePresets: function() {
+        //     // Still thinking about it
+        // }
 
     };
 })(window, Firebase);
